@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
 import BlogHome from './pages/BlogHome'
 import BlogArticle from './pages/BlogArticle'
 import CountryPage from './pages/CountryPage'
@@ -8,6 +8,34 @@ function AppShell() {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark'
   })
+  
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCountry, setSelectedCountry] = useState('All')
+  const [selectedTopic, setSelectedTopic] = useState('All')
+  
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const handleSearchChange = (val) => {
+    setSearchQuery(val)
+    if (location.pathname !== "/") {
+      navigate("/")
+    }
+  }
+
+  const handleCountryChange = (val) => {
+    setSelectedCountry(val)
+    if (location.pathname !== "/") {
+      navigate("/")
+    }
+  }
+
+  const handleTopicChange = (val) => {
+    setSelectedTopic(val)
+    if (location.pathname !== "/") {
+      navigate("/")
+    }
+  }
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -43,6 +71,48 @@ function AppShell() {
             </div>
           </div>
         </Link>
+
+        {/* Global Filters & Search Section in Header (Reuters Style) */}
+        <div className="header-filters-container">
+          {/* Search Bar */}
+          <div className="header-search-wrapper">
+            <svg className="header-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input 
+              type="text" 
+              className="header-search-input" 
+              placeholder="Search news & guides..." 
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+            />
+          </div>
+
+          {/* Country Selector */}
+          <select 
+            className="header-select" 
+            value={selectedCountry} 
+            onChange={(e) => handleCountryChange(e.target.value)}
+          >
+            <option value="All">All Countries</option>
+            <option value="Germany">Germany</option>
+            <option value="USA">USA</option>
+            <option value="UK & Canada">UK & Canada</option>
+            <option value="Global">Global</option>
+          </select>
+
+          {/* Topic Selector */}
+          <select 
+            className="header-select" 
+            value={selectedTopic} 
+            onChange={(e) => handleTopicChange(e.target.value)}
+          >
+            <option value="All">All Topics</option>
+            <option value="Visa">Visa</option>
+            <option value="Blocked Account">Blocked Account</option>
+            <option value="SOP">SOP</option>
+            <option value="APS">APS</option>
+            <option value="Scholarships">Scholarships</option>
+          </select>
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {/* Main App Link */}
@@ -84,7 +154,19 @@ function AppShell() {
       {/* Main Pages Wrapper */}
       <main className="main-content">
         <Routes>
-          <Route path="/" element={<BlogHome />} />
+          <Route 
+            path="/" 
+            element={
+              <BlogHome 
+                searchQuery={searchQuery} 
+                setSearchQuery={setSearchQuery}
+                selectedCountry={selectedCountry} 
+                setSelectedCountry={setSelectedCountry}
+                selectedTopic={selectedTopic} 
+                setSelectedTopic={setSelectedTopic}
+              />
+            } 
+          />
           <Route path="/country/:countryName" element={<CountryPage />} />
           <Route path="/:slug" element={<BlogArticle />} />
         </Routes>

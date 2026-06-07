@@ -535,3 +535,90 @@ body {
   font-size: 12px;
   background-color: var(--bg-card);
 }
+
+/* Header Filters Layout (Reuters style) */
+.header-filters-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  max-width: 600px;
+  margin: 0 24px;
+}
+
+.header-search-wrapper {
+  position: relative;
+  flex: 1.5;
+}
+
+.header-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  background: var(--bg-primary);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  border-radius: 0px;
+  outline: none;
+  transition: var(--transition-smooth);
+}
+
+.header-search-input:focus {
+  border-color: var(--accent);
+}
+
+.header-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.header-select {
+  flex: 1;
+  padding: 8px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 0px;
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  appearance: none; /* remove default arrow to replace with clean custom icon */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 11px;
+  padding-right: 26px;
+}
+
+.header-select:focus, .header-select:hover {
+  border-color: var(--accent);
+}
+
+.mobile-filters-container {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .header-filters-container {
+    display: none; /* Hide header controls on tablet/mobile to avoid overflow */
+  }
+  .mobile-filters-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 36px;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 24px;
+  }
+  .mobile-filters-container .search-input {
+    border-radius: 0px;
+  }
+}
+

@@ -4,12 +4,9 @@ import { Search, MapPin, Tag } from 'lucide-react'
 
 const BASE_URL = import.meta.env.VITE_API_URL || "";
 
-export default function BlogHome() {
+export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry, setSelectedCountry, selectedTopic, setSelectedTopic }) {
   const [articles, setArticles] = useState([])
   const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCountry, setSelectedCountry] = useState('All')
-  const [selectedTopic, setSelectedTopic] = useState('All')
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -65,60 +62,46 @@ export default function BlogHome() {
         </p>
       </div>
 
-      {/* Search & Double Filter Bar */}
-      <div className="search-container">
+      {/* Mobile-only Filter Bar (Hidden on Desktop via CSS) */}
+      <div className="mobile-filters-container">
         <div className="search-input-wrapper">
-          <Search className="search-icon" size={18} />
+          <Search className="search-icon" size={16} />
           <input
             type="text"
             className="search-input"
-            placeholder="Search guides, visa updates, or keywords..."
+            placeholder="Search news & guides..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        {/* Country Filter Row */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <MapPin size={14} style={{ color: 'var(--text-muted)' }} />
-            <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
-              Country:
-            </span>
-          </div>
-          <div className="categories-bar">
-            {countries.map(c => (
-              <button
-                key={c}
-                className={`category-chip ${selectedCountry === c ? 'active' : ''}`}
-                onClick={() => setSelectedCountry(c)}
-              >
-                {COUNTRY_FLAG[c] && <span style={{ marginRight: '6px' }}>{COUNTRY_FLAG[c]}</span>}
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <select 
+            className="header-select" 
+            style={{ display: 'block', width: '100%', flex: 1 }}
+            value={selectedCountry} 
+            onChange={(e) => setSelectedCountry(e.target.value)}
+          >
+            <option value="All">All Countries</option>
+            <option value="Germany">Germany</option>
+            <option value="USA">USA</option>
+            <option value="UK & Canada">UK & Canada</option>
+            <option value="Global">Global</option>
+          </select>
 
-        {/* Topic/Category Filter Row */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Tag size={14} style={{ color: 'var(--text-muted)' }} />
-            <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
-              Topic:
-            </span>
-          </div>
-          <div className="categories-bar">
-            {topics.map(t => (
-              <button
-                key={t}
-                className={`category-chip ${selectedTopic === t ? 'active' : ''}`}
-                onClick={() => setSelectedTopic(t)}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
+          <select 
+            className="header-select" 
+            style={{ display: 'block', width: '100%', flex: 1 }}
+            value={selectedTopic} 
+            onChange={(e) => setSelectedTopic(e.target.value)}
+          >
+            <option value="All">All Topics</option>
+            <option value="Visa">Visa</option>
+            <option value="Blocked Account">Blocked Account</option>
+            <option value="SOP">SOP</option>
+            <option value="APS">APS</option>
+            <option value="Scholarships">Scholarships</option>
+          </select>
         </div>
       </div>
 
