@@ -684,7 +684,7 @@ body {
   display: none;
 }
 
-@media (max-width: 900px) {
+  @media (max-width: 900px) {
   .header-filters-container {
     display: none; /* Hide header controls on tablet/mobile to avoid overflow */
   }
@@ -700,4 +700,12 @@ body {
     border-radius: 0px;
   }
 }
+
+/* Fix double bullet points in markdown checklist items */
+.article-body-content li:has(input[type="checkbox"]) {
+  list-style-type: none;
+  padding-left: 0;
+  margin-left: -20px; /* Offset the default list padding so it aligns nicely */
+}
+
 
