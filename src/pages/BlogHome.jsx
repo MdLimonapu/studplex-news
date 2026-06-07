@@ -57,11 +57,11 @@ export default function BlogHome() {
     <div>
       {/* Hero Header */}
       <div style={{ textAlign: 'center', margin: '30px 0 50px', borderBottom: '1.5px solid var(--card-border)', paddingBottom: '32px' }}>
-        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '46px', fontWeight: 900, marginBottom: '12px', letterSpacing: '-0.03em' }}>
-          The Studplex Times
+        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '42px', fontWeight: 900, marginBottom: '12px', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
+          Studplex Newsroom
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '16px', maxWidth: '600px', margin: '0 auto', fontFamily: 'var(--font-serif)', fontStyle: 'italic' }}>
-          Independent, expert resources, student guides, and visa slot updates for study abroad.
+        <p style={{ color: 'var(--text-muted)', fontSize: '15px', maxWidth: '600px', margin: '0 auto', fontFamily: 'var(--font-sans)', fontWeight: 500 }}>
+          Real-time global student guides, visa updates, and official resources for study abroad.
         </p>
       </div>
 
