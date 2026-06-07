@@ -1,8 +1,56 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
 import BlogHome from './pages/BlogHome'
 import BlogArticle from './pages/BlogArticle'
 import CountryPage from './pages/CountryPage'
+
+// Custom Dropdown Component to guarantee it opens DOWNWARDS and has consistent design (Reuters style)
+function HeaderDropdown({ label, value, options, onChange }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const selectedOption = options.find(opt => opt.value === value)
+
+  return (
+    <div className="header-dropdown-container" ref={dropdownRef}>
+      <button 
+        type="button"
+        className="header-dropdown-trigger" 
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span>{label}: <strong>{selectedOption ? selectedOption.label : value}</strong></span>
+        <svg className={`header-dropdown-arrow ${isOpen ? 'open' : ''}`} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
+      
+      {isOpen && (
+        <ul className="header-dropdown-menu">
+          {options.map(opt => (
+            <li 
+              key={opt.value} 
+              className={`header-dropdown-item ${value === opt.value ? 'active' : ''}`}
+              onClick={() => {
+                onChange(opt.value)
+                setIsOpen(false)
+              }}
+            >
+              {opt.label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
 
 function AppShell() {
   const [theme, setTheme] = useState(() => {
@@ -41,6 +89,30 @@ function AppShell() {
     document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem('theme', theme)
   }, [theme])
+
+  const countryOptions = [
+    { value: 'All', label: 'All' },
+    { value: 'Germany', label: 'Germany' },
+    { value: 'UK', label: 'UK' },
+    { value: 'USA', label: 'USA' },
+    { value: 'Canada', label: 'Canada' },
+    { value: 'Australia', label: 'Australia' },
+    { value: 'Netherlands', label: 'Netherlands' },
+    { value: 'Sweden', label: 'Sweden' },
+    { value: 'France', label: 'France' },
+    { value: 'Switzerland', label: 'Switzerland' },
+    { value: 'Japan', label: 'Japan' },
+    { value: 'Global', label: 'Global' }
+  ]
+
+  const topicOptions = [
+    { value: 'All', label: 'All' },
+    { value: 'Visa', label: 'Visa' },
+    { value: 'Blocked Account', label: 'Blocked Account' },
+    { value: 'SOP', label: 'SOP' },
+    { value: 'APS', label: 'APS' },
+    { value: 'Scholarships', label: 'Scholarships' }
+  ]
 
   return (
     <div className="app-container">
@@ -86,39 +158,21 @@ function AppShell() {
             />
           </div>
 
-          {/* Country Selector */}
-          <select 
-            className="header-select" 
+          {/* Custom Country Selector Dropdown */}
+          <HeaderDropdown 
+            label="COUNTRY" 
             value={selectedCountry} 
-            onChange={(e) => handleCountryChange(e.target.value)}
-          >
-            <option value="All">All Countries</option>
-            <option value="Germany">Germany</option>
-            <option value="UK">UK</option>
-            <option value="USA">USA</option>
-            <option value="Canada">Canada</option>
-            <option value="Australia">Australia</option>
-            <option value="Netherlands">Netherlands</option>
-            <option value="Sweden">Sweden</option>
-            <option value="France">France</option>
-            <option value="Switzerland">Switzerland</option>
-            <option value="Japan">Japan</option>
-            <option value="Global">Global</option>
-          </select>
+            options={countryOptions} 
+            onChange={handleCountryChange}
+          />
 
-          {/* Topic Selector */}
-          <select 
-            className="header-select" 
+          {/* Custom Topic Selector Dropdown */}
+          <HeaderDropdown 
+            label="TOPIC" 
             value={selectedTopic} 
-            onChange={(e) => handleTopicChange(e.target.value)}
-          >
-            <option value="All">All Topics</option>
-            <option value="Visa">Visa</option>
-            <option value="Blocked Account">Blocked Account</option>
-            <option value="SOP">SOP</option>
-            <option value="APS">APS</option>
-            <option value="Scholarships">Scholarships</option>
-          </select>
+            options={topicOptions} 
+            onChange={handleTopicChange}
+          />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>

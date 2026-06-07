@@ -576,6 +576,85 @@ body {
   color: var(--text-muted);
 }
 
+/* Custom Header Dropdowns (Reuters Style) */
+.header-dropdown-container {
+  position: relative;
+  flex: 1;
+}
+
+.header-dropdown-trigger {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 0px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: var(--transition-smooth);
+}
+
+.header-dropdown-trigger:hover,
+.header-dropdown-trigger:focus {
+  border-color: var(--accent);
+}
+
+.header-dropdown-arrow {
+  transition: transform 0.25s ease;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+
+.header-dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.header-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  padding: 0;
+  list-style: none;
+  background: var(--bg-card);
+  border: 1px solid var(--card-border);
+  z-index: 10100;
+  max-height: 250px;
+  overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-radius: 0px;
+}
+
+.header-dropdown-item {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  text-transform: none; /* keep original values readable */
+}
+
+.header-dropdown-item:hover {
+  background: rgba(var(--accent-rgb), 0.05);
+  color: var(--accent);
+}
+
+.header-dropdown-item.active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+/* Fallback Header Select for Mobile view if needed */
 .header-select {
   flex: 1;
   padding: 8px 10px;
@@ -589,7 +668,7 @@ body {
   outline: none;
   cursor: pointer;
   transition: var(--transition-smooth);
-  appearance: none; /* remove default arrow to replace with clean custom icon */
+  appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 8px center;
