@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import BlogHome from './pages/BlogHome'
 import BlogArticle from './pages/BlogArticle'
+import CountryPage from './pages/CountryPage'
 
 function AppShell() {
   const [theme, setTheme] = useState(() => {
@@ -82,6 +83,7 @@ function AppShell() {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<BlogHome />} />
+          <Route path="/country/:countryName" element={<CountryPage />} />
           <Route path="/:slug" element={<BlogArticle />} />
         </Routes>
       </main>
