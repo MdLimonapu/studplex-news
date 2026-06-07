@@ -64,7 +64,7 @@ body {
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 40px 20px 80px;
+  padding: 90px 20px 80px;
 }
 
 /* Header/Topbar styling (Classic Masthead) */
@@ -72,13 +72,14 @@ body {
   background-color: var(--bg-primary);
   border-bottom: 2px double var(--card-border);
   padding: 12px 20px;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 10000;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
 }
 
 .brand {
