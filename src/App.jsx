@@ -51,12 +51,14 @@ function AppShell() {
             target="_blank" 
             rel="noopener noreferrer"
             style={{
-              fontSize: '13.5px',
+              fontSize: '11.5px',
               fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
               color: 'var(--text)',
               textDecoration: 'none',
               padding: '8px 16px',
-              borderRadius: '8px',
+              borderRadius: '0px',
               border: '1px solid var(--card-border)',
               background: 'var(--bg-card)'
             }}

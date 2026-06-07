@@ -123,7 +123,7 @@ body {
   color: var(--text);
   height: 34px;
   width: 34px;
-  border-radius: 4px;
+  border-radius: 0px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -140,7 +140,7 @@ body {
 .card {
   background: var(--bg-card);
   border: 1px solid var(--card-border);
-  border-radius: 4px;
+  border-radius: 0px;
   padding: 24px;
   transition: var(--transition-smooth);
 }
@@ -165,7 +165,7 @@ body {
   padding: 12px 16px 12px 42px;
   background: var(--bg-card);
   border: 1px solid var(--card-border);
-  border-radius: 4px;
+  border-radius: 0px;
   color: var(--text);
   font-family: var(--font-sans);
   font-size: 14px;
@@ -196,9 +196,11 @@ body {
   background: transparent;
   border: 1px solid var(--card-border);
   color: var(--text-muted);
-  border-radius: 20px; /* Rounded pill tags */
-  font-size: 12.5px;
-  font-weight: 550;
+  border-radius: 0px; /* Sharp agency styling */
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   cursor: pointer;
   transition: var(--transition-smooth);
 }
@@ -438,7 +440,7 @@ body {
 
 .toc-card {
   padding: 20px;
-  border-radius: 4px;
+  border-radius: 0px;
   background: var(--bg-card);
   border: 1px solid var(--card-border);
 }
@@ -483,7 +485,7 @@ body {
   padding: 28px;
   border: 1px solid var(--card-border);
   border-top: 4px solid var(--accent); /* Reuters Orange top border */
-  border-radius: 4px;
+  border-radius: 0px;
   text-align: center;
   background: var(--bg-card);
 }
@@ -510,7 +512,7 @@ body {
   background: var(--accent);
   color: #ffffff;
   border: 1px solid var(--accent);
-  border-radius: 4px;
+  border-radius: 0px;
   font-weight: 700;
   font-size: 13px;
   text-transform: uppercase;
