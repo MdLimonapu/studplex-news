@@ -21,7 +21,7 @@ function AppShell() {
         <Link to="/" className="brand">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {/* Studplex Brand Icon Logo */}
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M16 2L2 9L16 16L30 9L16 2Z" fill="url(#studplex-grad)" />
               <path d="M6 14.5V21C6 24.3 10.5 27 16 27C21.5 27 26 24.3 26 21V14.5L16 19.5L6 14.5Z" fill="url(#studplex-grad2)" />
               <defs>
