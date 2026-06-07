@@ -138,7 +138,26 @@ export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry,
               className="article-card"
             >
               <div className="article-card-header">
-                <span className="category-badge">{art.category}</span>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <span className="category-badge">{art.category}</span>
+                  {art.country && (
+                    <span 
+                      className="category-badge" 
+                      style={{ 
+                        background: 'rgba(var(--accent-rgb), 0.08)', 
+                        color: 'var(--accent)',
+                        cursor: 'pointer' 
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/country/${art.country.toLowerCase()}`);
+                      }}
+                      title={`View all ${art.country} guides`}
+                    >
+                      {COUNTRY_FLAG[art.country] || '🌍'} {art.country}
+                    </span>
+                  )}
+                </div>
                 <span className="article-date">{art.date}</span>
               </div>
               
@@ -148,26 +167,23 @@ export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry,
               </div>
 
               <div className="article-card-footer">
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ display: 'flex', gap: '12px', color: 'var(--text-muted)' }}>
                   <span>⏱️ {art.read_time} min read</span>
                   <span>👁️ {art.views || 0} views</span>
                 </div>
-                {art.country && (
-                  <Link 
-                    to={`/country/${art.country.toLowerCase()}`}
-                    style={{ 
-                      color: 'var(--secondary-accent)', 
-                      textDecoration: 'none', 
-                      fontWeight: 700,
-                      fontSize: '11px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {COUNTRY_FLAG[art.country] || '🌍'} {art.country} Page →
-                  </Link>
-                )}
+                <Link 
+                  to={`/${art.slug}`}
+                  style={{ 
+                    color: 'var(--secondary-accent)', 
+                    textDecoration: 'none', 
+                    fontWeight: 700,
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em'
+                  }}
+                >
+                  Read More →
+                </Link>
               </div>
             </div>
           ))}
