@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Search, MapPin, Tag } from 'lucide-react'
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5001";
+const BASE_URL = import.meta.env.VITE_API_URL || "";
 
 export default function BlogHome() {
   const [articles, setArticles] = useState([])

@@ -1,0 +1,69 @@
+import { MongoClient } from 'mongodb';
+
+const uri = process.env.MONGO_URI;
+let client;
+let clientPromise;
+
+if (!uri) {
+  throw new Error('Please add your Mongo URI to environment variables');
+}
+
+if (process.env.NODE_ENV === 'development') {
+  if (!global._mongoClientPromise) {
+    client = new MongoClient(uri);
+    global._mongoClientPromise = client.connect();
+  }
+  clientPromise = global._mongoClientPromise;
+} else {
+  client = new MongoClient(uri);
+  clientPromise = client.connect();
+}
+
+export default async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { slug } = req.query;
+  if (!slug) {
+    return res.status(400).json({ error: 'Slug is required' });
+  }
+
+  try {
+    const mongoClient = await clientPromise;
+    let dbName = 'studyapp';
+    try {
+      const parsed = new URL(uri);
+      if (parsed.pathname && parsed.pathname !== '/') {
+        dbName = parsed.pathname.substring(1);
+      }
+    } catch (e) {}
+
+    const db = mongoClient.db(dbName);
+    const articlesCol = db.collection('articles');
+
+    // Increment views
+    await articlesCol.updateOne({ slug: slug }, { $inc: { views: 1 } });
+
+    // Fetch the article details
+    const article = await articlesCol.findOne({ slug: slug }, { projection: { _id: 0 } });
+
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    return res.status(200).json(article);
+  } catch (error) {
+    console.error('Database error:', error);
+    return res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+}

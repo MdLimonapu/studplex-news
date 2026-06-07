@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Clock, Eye, Calendar, BookOpen } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5001";
+const BASE_URL = import.meta.env.VITE_API_URL || "";
 
 export default function BlogArticle() {
   const { slug } = useParams()

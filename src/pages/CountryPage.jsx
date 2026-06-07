@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, BookOpen } from 'lucide-react'
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5001";
+const BASE_URL = import.meta.env.VITE_API_URL || "";
 
 export default function CountryPage() {
   const { countryName } = useParams()
