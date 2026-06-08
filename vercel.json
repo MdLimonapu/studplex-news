@@ -7,7 +7,7 @@
   ],
   "crons": [
     {
-      "path": "/api/cron/write-articles",
+      "path": "/api/write-articles",
       "schedule": "*/30 * * * *"
     }
   ]
