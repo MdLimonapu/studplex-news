@@ -60,6 +60,7 @@ function AppShell() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCountry, setSelectedCountry] = useState('All')
   const [selectedTopic, setSelectedTopic] = useState('All')
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   
   const navigate = useNavigate()
   const location = useLocation()
@@ -170,7 +171,19 @@ function AppShell() {
       {/* Axios Main Header Row */}
       <header className="axios-main-header">
         <div className="axios-header-left">
-          {/* Empty to balance the center logo layout */}
+          <button 
+            type="button" 
+            className="menu-toggle-btn"
+            onClick={() => setIsMenuOpen(true)}
+            title="Open navigation menu"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+            <span className="menu-text-label">Sections</span>
+          </button>
         </div>
 
         <div className="axios-header-center">
@@ -220,6 +233,66 @@ function AppShell() {
               {t.name}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Navigation Drawer Overlay */}
+      {isMenuOpen && (
+        <div className="drawer-overlay" onClick={() => setIsMenuOpen(false)}></div>
+      )}
+
+      {/* Navigation Drawer Panel */}
+      <div className={`nav-drawer ${isMenuOpen ? 'open' : ''}`}>
+        <div className="drawer-header">
+          <span className="drawer-logo">STUDPLEX</span>
+          <button className="close-drawer-btn" onClick={() => setIsMenuOpen(false)}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div className="drawer-content">
+          {/* Section: Academic Levels */}
+          <div className="drawer-section">
+            <h3 className="drawer-section-title">Academic Levels</h3>
+            <ul className="drawer-links-list">
+              <li><button onClick={() => { handleSearchChange('Bachelor'); setIsMenuOpen(false); }}>🎓 Bachelor's Guides</button></li>
+              <li><button onClick={() => { handleSearchChange('Master'); setIsMenuOpen(false); }}>🎓 Master's Guides</button></li>
+              <li><button onClick={() => { handleSearchChange('PhD'); setIsMenuOpen(false); }}>🎓 PhD / Research Guides</button></li>
+            </ul>
+          </div>
+
+          {/* Section: Topic Categories */}
+          <div className="drawer-section">
+            <h3 className="drawer-section-title">Topic Categories</h3>
+            <ul className="drawer-links-list">
+              <li><button onClick={() => { handleTopicChange('Visa'); setIsMenuOpen(false); }}>🏛️ Visa Roadmaps</button></li>
+              <li><button onClick={() => { handleTopicChange('Blocked Account'); setIsMenuOpen(false); }}>💳 Blocked Accounts</button></li>
+              <li><button onClick={() => { handleTopicChange('SOP'); setIsMenuOpen(false); }}>✍️ SOP & CV Writing</button></li>
+              <li><button onClick={() => { handleTopicChange('APS'); setIsMenuOpen(false); }}>📜 APS / Verification</button></li>
+              <li><button onClick={() => { handleTopicChange('Scholarships'); setIsMenuOpen(false); }}>💰 Scholarships & Grants</button></li>
+            </ul>
+          </div>
+
+          {/* Section: Popular Countries */}
+          <div className="drawer-section">
+            <h3 className="drawer-section-title">Study Destinations</h3>
+            <ul className="drawer-links-list">
+              <li><button onClick={() => { handleCountryChange('Germany'); setIsMenuOpen(false); }}>🇩🇪 Germany</button></li>
+              <li><button onClick={() => { handleCountryChange('UK'); setIsMenuOpen(false); }}>🇬🇧 United Kingdom</button></li>
+              <li><button onClick={() => { handleCountryChange('USA'); setIsMenuOpen(false); }}>🇺🇸 United States</button></li>
+              <li><button onClick={() => { handleCountryChange('Canada'); setIsMenuOpen(false); }}>🇨🇦 Canada</button></li>
+              <li><button onClick={() => { handleCountryChange('Australia'); setIsMenuOpen(false); }}>🇦🇺 Australia</button></li>
+              <li><button onClick={() => { handleCountryChange('All'); setIsMenuOpen(false); }}>🌐 View All Countries</button></li>
+            </ul>
+          </div>
+
+          {/* Section: Main App Utilities */}
+          <div className="drawer-section utils-section">
+            <h3 className="drawer-section-title">Studplex Tools</h3>
+            <a href="https://www.studplex.com" target="_blank" rel="noopener noreferrer" className="drawer-util-btn">
+              Go to Main Portal ↗
+            </a>
+          </div>
         </div>
       </div>
 
