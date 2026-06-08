@@ -4,5 +4,11 @@
     { "source": "/sitemap.xml", "destination": "/api/sitemap.xml" },
     { "source": "/robots.txt", "destination": "/api/robots.txt" },
     { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/write-articles",
+      "schedule": "*/30 * * * *"
+    }
   ]
 }
