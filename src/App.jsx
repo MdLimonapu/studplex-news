@@ -170,13 +170,7 @@ function AppShell() {
       {/* Axios Main Header Row */}
       <header className="axios-main-header">
         <div className="axios-header-left">
-          {/* Custom Topic Selector Dropdown (Axios "All topics" style) */}
-          <HeaderDropdown 
-            label="All Topics" 
-            value={selectedTopic} 
-            options={topicOptions} 
-            onChange={handleTopicChange}
-          />
+          {/* Empty to balance the center logo layout */}
         </div>
 
         <div className="axios-header-center">
