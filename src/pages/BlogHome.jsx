@@ -44,6 +44,8 @@ export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry,
     Global: "🌍"
   }
 
+  const [sortBy, setSortBy] = useState('latest')
+
   // Filter articles based on search, country, and topic
   const filteredArticles = articles.filter(art => {
     const matchesCountry = selectedCountry === 'All' || (art.country || '').toLowerCase() === selectedCountry.toLowerCase()
@@ -55,6 +57,20 @@ export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry,
                           art.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
                           
     return matchesCountry && matchesTopic && matchesSearch
+  })
+
+  // Sort articles based on selection
+  const sortedArticles = [...filteredArticles].sort((a, b) => {
+    if (sortBy === 'latest') {
+      return new Date(b.date) - new Date(a.date);
+    }
+    if (sortBy === 'popular') {
+      return (b.views || 0) - (a.views || 0);
+    }
+    if (sortBy === 'oldest') {
+      return new Date(a.date) - new Date(b.date);
+    }
+    return 0;
   })
 
   return (
@@ -119,6 +135,28 @@ export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry,
         </div>
       </div>
 
+      {/* Sort By controls bar */}
+      {!loading && (
+        <div className="filter-controls-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--card-border)', paddingBottom: '16px', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontWeight: 600 }}>
+            {sortedArticles.length} guides found
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <label style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', fontWeight: 700, fontFamily: 'var(--font-sans)' }}>Sort By:</label>
+            <select 
+              className="header-select" 
+              style={{ padding: '6px 12px', fontSize: '13px', borderRadius: '4px', border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-main)', cursor: 'pointer' }}
+              value={sortBy} 
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="latest">📅 Latest Articles</option>
+              <option value="popular">🔥 Most Viewed</option>
+              <option value="oldest">⏳ Oldest Articles</option>
+            </select>
+          </div>
+        </div>
+      )}
+
       {/* Grid of Articles */}
       {loading ? (
         <div className="articles-grid">
@@ -130,9 +168,9 @@ export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry,
             </div>
           ))}
         </div>
-      ) : filteredArticles.length > 0 ? (
+      ) : sortedArticles.length > 0 ? (
         <div className="articles-grid">
-          {filteredArticles.map(art => (
+          {sortedArticles.map(art => (
             <div
               key={art.slug}
               className="article-card"
