@@ -108,6 +108,7 @@ body {
   white-space: nowrap;
   height: 100%;
   flex: 1;
+  min-width: 0; /* Enable flex container shrinking for overflow scroll */
   scrollbar-width: none; /* Hide scrollbar Firefox */
   padding-right: 20px;
 }
