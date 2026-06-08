@@ -4,7 +4,7 @@ import { Search, MapPin, Tag } from 'lucide-react'
 
 const BASE_URL = import.meta.env.VITE_API_URL || "";
 
-export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry, setSelectedCountry, selectedTopic, setSelectedTopic }) {
+export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry, setSelectedCountry, selectedTopic, setSelectedTopic, sortBy, setSortBy }) {
   const [articles, setArticles] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
@@ -43,8 +43,6 @@ export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry,
     Japan: "🇯🇵",
     Global: "🌍"
   }
-
-  const [sortBy, setSortBy] = useState('latest')
 
   // Filter articles based on search, country, and topic
   const filteredArticles = articles.filter(art => {

@@ -60,6 +60,7 @@ function AppShell() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCountry, setSelectedCountry] = useState('All')
   const [selectedTopic, setSelectedTopic] = useState('All')
+  const [sortBy, setSortBy] = useState('latest')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   
   const navigate = useNavigate()
@@ -251,6 +252,43 @@ function AppShell() {
         </div>
 
         <div className="drawer-content">
+          {/* Section: Sort & Feed */}
+          <div className="drawer-section">
+            <h3 className="drawer-section-title">Feed Options</h3>
+            <ul className="drawer-links-list">
+              <li>
+                <button 
+                  onClick={() => { 
+                    setSortBy('latest'); 
+                    setSelectedCountry('All'); 
+                    setSelectedTopic('All'); 
+                    setSearchQuery(''); 
+                    setIsMenuOpen(false); 
+                    if (location.pathname !== "/") navigate("/");
+                  }}
+                  style={sortBy === 'latest' && selectedCountry === 'All' && selectedTopic === 'All' && !searchQuery ? { color: 'var(--accent)', fontWeight: 800 } : {}}
+                >
+                  📅 Latest Articles
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => { 
+                    setSortBy('popular'); 
+                    setSelectedCountry('All'); 
+                    setSelectedTopic('All'); 
+                    setSearchQuery(''); 
+                    setIsMenuOpen(false); 
+                    if (location.pathname !== "/") navigate("/");
+                  }}
+                  style={sortBy === 'popular' && selectedCountry === 'All' && selectedTopic === 'All' ? { color: 'var(--accent)', fontWeight: 800 } : {}}
+                >
+                  🔥 Most Viewed
+                </button>
+              </li>
+            </ul>
+          </div>
+
           {/* Section: Academic Levels */}
           <div className="drawer-section">
             <h3 className="drawer-section-title">Academic Levels</h3>
@@ -310,6 +348,8 @@ function AppShell() {
                 setSelectedCountry={setSelectedCountry}
                 selectedTopic={selectedTopic} 
                 setSelectedTopic={setSelectedTopic}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
               />
             } 
           />
