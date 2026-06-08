@@ -66,7 +66,7 @@ body {
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 190px 20px 80px;
+  padding: 200px 20px 80px;
 }
 
 /* Axios Utility Top Bar: Dark Blue Background */
@@ -74,14 +74,14 @@ body {
   background-color: #062650; /* Deep Axios blue */
   color: #ffffff;
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.05em;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 38px;
+  height: 48px; /* Bigger utility header */
   z-index: 10200;
   display: flex;
   align-items: center;
@@ -102,7 +102,7 @@ body {
 .country-flags-list {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px; /* Wider gap for larger tabs */
   overflow-x: auto;
   white-space: nowrap;
   height: 100%;
@@ -118,16 +118,21 @@ body {
   background: transparent;
   border: none;
   color: #bfd1e5;
-  font-size: 11px;
+  font-size: 13px; /* Bigger font-size */
   font-weight: 700;
   text-transform: uppercase;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
+  gap: 8px; /* Larger gap */
+  padding: 6px 10px;
   height: 100%;
   transition: var(--transition-smooth);
+}
+
+.country-flag-tab .flag-icon {
+  font-size: 18px; /* Bigger country flags */
+  line-height: 1;
 }
 
 .country-flag-tab:hover {
@@ -136,7 +141,7 @@ body {
 
 .country-flag-tab.active {
   color: #ffffff;
-  border-bottom: 2px solid var(--accent);
+  border-bottom: 3px solid var(--accent); /* Thicker active border */
 }
 
 .axios-utility-right {
@@ -147,7 +152,8 @@ body {
 .main-app-link {
   color: #bfd1e5;
   text-decoration: none;
-  font-size: 11px;
+  font-size: 13px; /* Bigger main app link */
+  font-weight: 700;
   text-transform: uppercase;
   transition: var(--transition-smooth);
 }
@@ -162,7 +168,7 @@ body {
   border-bottom: 1px solid var(--card-border);
   height: 68px;
   position: fixed;
-  top: 38px;
+  top: 48px; /* Offset adjusted for bigger utility top bar */
   left: 0;
   right: 0;
   z-index: 10100;
@@ -268,7 +274,7 @@ body {
   background-color: var(--bg-primary);
   border-bottom: 1px solid var(--card-border);
   position: fixed;
-  top: 106px;
+  top: 116px; /* Offset adjusted for bigger 48px utility bar + 68px main header */
   left: 0;
   right: 0;
   height: 48px;
