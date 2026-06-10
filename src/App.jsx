@@ -150,6 +150,7 @@ function AppShell() {
                 key={c.value}
                 className={`country-flag-tab ${selectedCountry === c.value ? 'active' : ''}`}
                 onClick={() => handleCountryChange(c.value)}
+                title={c.name}
               >
                 <span className="flag-icon">{c.flag}</span>
                 <span className="country-name-text">{c.name}</span>

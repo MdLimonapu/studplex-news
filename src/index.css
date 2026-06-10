@@ -103,14 +103,14 @@ body {
 .country-flags-list {
   display: flex;
   align-items: center;
-  gap: 20px; /* Wider gap for larger tabs */
+  gap: 12px; /* Reduced gap to fit more items and prevent clipping */
   overflow-x: auto;
   white-space: nowrap;
   height: 100%;
   flex: 1;
   min-width: 0; /* Enable flex container shrinking for overflow scroll */
   scrollbar-width: none; /* Hide scrollbar Firefox */
-  padding-right: 20px;
+  padding-right: 12px;
 }
 
 .country-flags-list::-webkit-scrollbar {
@@ -121,25 +121,39 @@ body {
   background: transparent;
   border: none;
   color: #bfd1e5;
-  font-size: 13px; /* Bigger font-size */
+  font-size: 12px; /* Slightly reduced font size for better fit */
   font-weight: 700;
   text-transform: uppercase;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px; /* Larger gap */
-  padding: 6px 10px;
+  gap: 6px; /* Reduced gap */
+  padding: 6px 8px;
   height: 100%;
   transition: var(--transition-smooth);
 }
 
 .country-flag-tab .flag-icon {
-  font-size: 18px; /* Bigger country flags */
+  font-size: 16px; /* Slightly smaller flags */
   line-height: 1;
 }
 
 .country-flag-tab:hover {
   color: #ffffff;
+}
+
+.country-name-text {
+  display: inline-block;
+}
+
+@media (max-width: 1400px) {
+  .country-name-text {
+    display: none;
+  }
+  .country-flags-list {
+    gap: 16px;
+    justify-content: space-around;
+  }
 }
 
 .country-flag-tab.active {
@@ -151,13 +165,16 @@ body {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  margin-left: 12px;
+  margin-left: 16px;
+  padding-left: 16px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2); /* Separator to prevent overlap */
+  height: 60%;
 }
 
 .main-app-link {
   color: #bfd1e5;
   text-decoration: none;
-  font-size: 13px; /* Bigger main app link */
+  font-size: 12px; /* Matching size */
   font-weight: 700;
   text-transform: uppercase;
   transition: var(--transition-smooth);
