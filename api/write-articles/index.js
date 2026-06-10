@@ -1,11 +1,8 @@
 import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGO_URI;
-// Fallback Gemini API keys if not set in Vercel environment variables yet
-const FALLBACK_GEMINI_KEYS = [
-  "YOUR_GEMINI_API_KEY_HERE",
-  "YOUR_GEMINI_API_KEY_HERE"
-];
+// Ensure GEMINI_API_KEY is configured in Vercel environment variables
+
 
 async function callGemini(prompt, apiKey) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
@@ -45,7 +42,11 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'MONGO_URI is not configured' });
   }
 
-  const apiKey = (process.env.GEMINI_API_KEY || FALLBACK_GEMINI_KEYS[0]).split(",")[0].trim();
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'GEMINI_API_KEY is not configured' });
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY.split(",")[0].trim();
 
   let mongoClient;
   try {
