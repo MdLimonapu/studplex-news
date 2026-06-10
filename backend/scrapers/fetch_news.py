@@ -2,12 +2,14 @@ import os
 import json
 import xml.etree.ElementTree as ET
 import urllib.request
+import urllib.parse
 import ssl
 import datetime
 from email.utils import parsedate_to_datetime
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from pymongo import MongoClient
 
 # Bypass SSL verify for macOS urllib environments
 ssl._create_default_https_context = ssl._create_unverified_context
