@@ -34,6 +34,58 @@ export default function BlogArticle() {
             document.getElementsByTagName('head')[0].appendChild(metaDesc);
           }
           metaDesc.setAttribute('content', data.meta_description || 'Studplex Guide');
+
+          // Dynamically update JSON-LD Article Schema
+          let schemaScript = document.getElementById('jsonld-article-schema');
+          if (!schemaScript) {
+            schemaScript = document.createElement('script');
+            schemaScript.setAttribute('id', 'jsonld-article-schema');
+            schemaScript.setAttribute('type', 'application/ld+json');
+            document.getElementsByTagName('head')[0].appendChild(schemaScript);
+          }
+          const articleSchema = {
+            "@context": "https://schema.org",
+            "@type": "NewsArticle",
+            "headline": data.title,
+            "description": data.meta_description || 'Studplex Guide',
+            "datePublished": data.date,
+            "author": {
+              "@type": "Organization",
+              "name": "Studplex",
+              "url": "https://studplex.com/"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "Studplex",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://studplex.com/apple-touch-icon.png"
+              }
+            },
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": window.location.href
+            }
+          };
+          schemaScript.textContent = JSON.stringify(articleSchema);
+
+          // Update Open Graph (Social Sharing) Tags
+          const ogTags = {
+            "og:title": `${data.title} | Studplex Guides`,
+            "og:description": data.meta_description || 'Studplex Guide',
+            "og:type": "article",
+            "og:url": window.location.href,
+            "og:site_name": "Studplex Newsroom"
+          };
+          Object.entries(ogTags).forEach(([property, content]) => {
+            let tag = document.querySelector(`meta[property="${property}"]`);
+            if (!tag) {
+              tag = document.createElement('meta');
+              tag.setAttribute('property', property);
+              document.getElementsByTagName('head')[0].appendChild(tag);
+            }
+            tag.setAttribute('content', content);
+          });
         }
       })
       .catch(err => {

@@ -16,6 +16,17 @@ export default function CountryPage() {
 
   useEffect(() => {
     setLoading(true)
+    
+    // Update dynamic metadata for SEO
+    document.title = `Study Abroad in ${displayName}: Visas, Guides & News | Studplex`;
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      document.getElementsByTagName('head')[0].appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', `Find all student resources, visa rules, blocked accounts, admissions details, and expert guides for study abroad in ${displayName}.`);
+
     fetch(`${BASE_URL}/api/articles`)
       .then(res => res.json())
       .then(data => {
@@ -32,7 +43,7 @@ export default function CountryPage() {
         console.error('Error fetching country articles:', err)
         setLoading(false)
       })
-  }, [countryName])
+  }, [countryName, displayName])
 
   // Get list of unique topics/categories for this country's articles
   const topics = ['All', ...new Set(articles.map(art => art.category))].filter(Boolean)
