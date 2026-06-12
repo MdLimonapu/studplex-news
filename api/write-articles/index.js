@@ -64,12 +64,32 @@ export default async function handler(req, res) {
     const db = mongoClient.db(dbName);
     const articlesCol = db.collection('articles');
 
-    // 1. Fetch existing slugs to avoid duplication
-    const existingArticles = await articlesCol.find({}, { projection: { slug: 1 } }).toArray();
+    // 1. Fetch existing articles to rotate countries dynamically and avoid duplicate slugs
+    const existingArticles = await articlesCol.find({}, { projection: { slug: 1, country: 1 } }).toArray();
     const existingSlugs = existingArticles.map(a => a.slug);
 
-    // 2. Ask Gemini to brainstorm 1 brand new, unique topic
-    const brainstormPrompt = `You are a master academic editor. Generate a JSON object representing 1 new highly relevant study abroad topic for international students. Do not duplicate these existing slugs: ${JSON.stringify(existingSlugs.slice(-100))}.
+    // Compute counts for the 10 target countries
+    const countries = ["Germany", "UK", "USA", "Canada", "Australia", "Netherlands", "Sweden", "France", "Switzerland", "Japan"];
+    const countryCounts = {};
+    countries.forEach(c => { countryCounts[c] = 0; });
+    existingArticles.forEach(a => {
+      if (a.country && countries.includes(a.country)) {
+        countryCounts[a.country] += 1;
+      }
+    });
+
+    // Select the country with the lowest count
+    let targetCountry = "Germany";
+    let minCount = Infinity;
+    countries.forEach(c => {
+      if (countryCounts[c] < minCount) {
+        minCount = countryCounts[c];
+        targetCountry = c;
+      }
+    });
+
+    // 2. Ask Gemini to brainstorm 1 new highly-searched topic for the selected country
+    const brainstormPrompt = `You are a master academic editor. Generate a JSON object representing 1 new highly relevant study abroad question or topic for international students planning to go to: ${targetCountry}. Focus on a practical, highly-searched question (e.g. visa slots, blocked accounts, part-time jobs, student housing). Do not duplicate these existing slugs: ${JSON.stringify(existingSlugs.slice(-100))}.
     
     Provide the response as raw JSON matching this structure:
     {
@@ -163,6 +183,7 @@ ${topic.title}
       meta_title: metaTitle,
       meta_description: metaDescription,
       category,
+      country: targetCountry,
       tags,
       read_time: readTime,
       content,
