@@ -5,25 +5,39 @@ const uri = process.env.MONGO_URI;
 
 
 async function callGemini(prompt, apiKey) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }]
-    })
-  });
-  
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Gemini API error: ${res.status} - ${errText}`);
+  const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+  let lastError;
+
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      });
+      
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Gemini API error with ${model}: ${res.status} - ${errText}`);
+      }
+      
+      const data = await res.json();
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts[0]) {
+        throw new Error(`Invalid response structure from Gemini API with ${model}`);
+      }
+      return data.candidates[0].content.parts[0].text.trim();
+    } catch (err) {
+      console.warn(`⚠️ Gemini model ${model} failed, trying next:`, err.message);
+      lastError = err;
+      // Wait 1 second before trying next model
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
   
-  const data = await res.json();
-  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts[0]) {
-    throw new Error(`Invalid response structure from Gemini API: ${JSON.stringify(data)}`);
-  }
-  return data.candidates[0].content.parts[0].text.trim();
+  throw new Error(`All Gemini models failed. Last error: ${lastError.message}`);
 }
 
 export default async function handler(req, res) {
