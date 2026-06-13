@@ -121,16 +121,19 @@ export default async function handler(req, res) {
       throw new Error("Brainstormed topic is missing required keys.");
     }
 
-    // 3. Ask Gemini to write the high-end, humanlike article
+    // 3. Ask Gemini to write the high-end, humanlike article focusing specifically on the target country
     const articlePrompt = `You are an experienced study abroad advisor, elite academic copywriter, and SEO expert. Write a comprehensive, high-quality, and deeply informative guide/article on the following topic:
 Title: ${topic.title}
 Description: ${topic.prompt}
+Target Country: ${targetCountry}
+
+You MUST write this article specifically tailored for ${targetCountry}. Do NOT write it as a general/overall guide. All rules, visa specifications, accommodation details, part-time hour limits, tax brackets, and costs must reflect the reality of studying in ${targetCountry}.
 
 Make sure the article has these attributes:
 1. Long-form and extremely thorough (at least 1000 words).
 2. Humanlike Tone & Empathy: Write in a warm, expert, conversational, and highly natural human voice. Do NOT sound like an AI. Avoid robotic transition phrases or corporate buzzwords (do not use words like "delve", "tapestry", "testament", "moreover", "furthermore", "in conclusion", "it is important to note"). Use varying sentence lengths, personal pronouns, and realistic student-focused scenarios.
 3. Well-structured in Markdown using H2 (##) and H3 (###) headers, bullet points, numbered lists, and bold text.
-4. Contains a detailed HTML or Markdown table summarizing key steps, costs, or requirements (e.g. document checklists or timelines).
+4. Contains a detailed HTML or Markdown table summarizing key steps, costs, or requirements (e.g. document checklists or timelines) for ${targetCountry}.
 5. Includes internal linking references back to the main website domain (e.g., 'Use the Studplex Matching Engine to find matching courses' or 'check your detailed eligibility on the Studplex Roadmap page').
 6. SEO optimized with natural keyword integration.
 
@@ -149,7 +152,7 @@ ${topic.title}
 [Enter the Meta Description here (maximum 160 characters)]
 
 ---CATEGORY---
-[Enter main category name, e.g. Visa, Germany, Blocked Account, SOP, Scholarships, Canada, Australia]
+${targetCountry}
 
 ---TAGS---
 [Comma-separated list of tags, e.g. housing, study abroad, guide]
