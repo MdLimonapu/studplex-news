@@ -46,8 +46,9 @@ export default async function handler(req, res) {
     const db = mongoClient.db(dbName);
     const articlesCol = db.collection('articles');
     
-    // Find all articles, excluding full content to keep payload size small for list view
-    const articles = await articlesCol.find({}, { projection: { _id: 0, content: 0 } }).toArray();
+    // Find all published articles (date <= today), excluding full content to keep payload size small for list view
+    const todayStr = new Date().toISOString().split('T')[0];
+    const articles = await articlesCol.find({ date: { $lte: todayStr } }, { projection: { _id: 0, content: 0 } }).toArray();
     
     return res.status(200).json(articles);
   } catch (error) {

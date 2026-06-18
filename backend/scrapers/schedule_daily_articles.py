@@ -79,7 +79,7 @@ def brainstorm_topics_for_country(client, country, existing_slugs, count=2):
         }
     ]
 
-def write_article(client, topic, country, model_name):
+def write_article(client, topic, country, model_name, publish_date=None):
     """Write a highly professional, humanlike guide with backlinks to studplex.com."""
     print(f"✍️ Writing article for {country}: '{topic['title']}' using {model_name}...")
     
@@ -130,7 +130,7 @@ You must format your response EXACTLY as text with the following delimiters:
     text = response.text.strip()
     
     def extract_block(name, text_content):
-        pattern = r'---' + name + r'---\s*\n(.*?)(?=\n---[A-Z_]+---| \Z)'
+        pattern = r'---' + name + r'---\s*\n(.*?)(?=\n---[A-Z_]+---|\Z)'
         match = re.search(pattern, text_content, re.DOTALL | re.IGNORECASE)
         if match:
             return match.group(1).strip()
@@ -155,6 +155,9 @@ You must format your response EXACTLY as text with the following delimiters:
         read_time = 7
         
     views = datetime.datetime.now().microsecond % 80 + 20
+    
+    if not publish_date:
+        publish_date = datetime.datetime.now().strftime("%Y-%m-%d")
         
     return {
         "slug": slug,
@@ -167,7 +170,7 @@ You must format your response EXACTLY as text with the following delimiters:
         "read_time": read_time,
         "content": content,
         "views": views,
-        "date": datetime.datetime.now().strftime("%Y-%m-%d")
+        "date": publish_date
     }
 
 def main():
@@ -202,14 +205,34 @@ def main():
     # Process 2 articles for each of the 10 countries
     for country in COUNTRIES:
         print(f"\n🌍 === Starting country: {country} ===")
+        
+        # Stagger starting from the latest date in MongoDB for this country
+        start_date = datetime.date.today()
+        try:
+            latest_article = articles_col.find_one(
+                {"country": country},
+                sort=[("date", -1)]
+            )
+            if latest_article and "date" in latest_article:
+                latest_date_str = latest_article["date"]
+                latest_date = datetime.datetime.strptime(latest_date_str, "%Y-%m-%d").date()
+                if latest_date >= start_date:
+                    start_date = latest_date + datetime.timedelta(days=1)
+        except Exception as e:
+            print(f"⚠️ Error fetching latest article date for {country}: {e}")
+
         topics = brainstorm_topics_for_country(client, country, existing_slugs, count=2)
         
-        for topic in topics:
+        for idx, topic in enumerate(topics):
+            scheduled_date = start_date + datetime.timedelta(days=idx)
+            scheduled_date_str = scheduled_date.strftime("%Y-%m-%d")
+            print(f"📅 Scheduling article '{topic['title']}' for {scheduled_date_str}")
+            
             article = None
             # Try different models in case of limits/errors
             for model in MODELS:
                 try:
-                    article = write_article(client, topic, country, model)
+                    article = write_article(client, topic, country, model, publish_date=scheduled_date_str)
                     if article and len(article.get("content", "")) > 100:
                         break
                 except Exception as e:

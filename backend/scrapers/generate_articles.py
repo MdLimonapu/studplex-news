@@ -97,7 +97,7 @@ You must format your response EXACTLY as text with the following delimiters:
             
             # Parse delimited text
             def extract_block(name, text_content):
-                pattern = r'---' + name + r'---\s*\n(.*?)(?=\n---[A-Z_]+---| \Z)'
+                pattern = r'---' + name + r'---\s*\n(.*?)(?=\n---[A-Z_]+---|\Z)'
                 match = re.search(pattern, text_content, re.DOTALL | re.IGNORECASE)
                 if match:
                     return match.group(1).strip()

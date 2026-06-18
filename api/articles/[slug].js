@@ -51,16 +51,17 @@ export default async function handler(req, res) {
     const db = mongoClient.db(dbName);
     const articlesCol = db.collection('articles');
 
-    // Increment views
-    await articlesCol.updateOne({ slug: slug }, { $inc: { views: 1 } });
-
-    // Fetch the article details
-    const article = await articlesCol.findOne({ slug: slug }, { projection: { _id: 0 } });
-
+    // Fetch the article details (only if it has been published)
+    const todayStr = new Date().toISOString().split('T')[0];
+    const article = await articlesCol.findOne({ slug: slug, date: { $lte: todayStr } }, { projection: { _id: 0 } });
+ 
     if (!article) {
-      return res.status(404).json({ error: 'Article not found' });
+      return res.status(404).json({ error: 'Article not found or not yet published' });
     }
-
+ 
+    // Increment views only after verification that it's published
+    await articlesCol.updateOne({ slug: slug }, { $inc: { views: 1 } });
+ 
     return res.status(200).json(article);
   } catch (error) {
     console.error('Database error:', error);
