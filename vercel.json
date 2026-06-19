@@ -3,7 +3,9 @@
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap.xml" },
     { "source": "/robots.txt", "destination": "/api/robots.txt" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/", "destination": "/api/page/home" },
+    { "source": "/country/:name", "destination": "/index.html" },
+    { "source": "/:slug", "destination": "/api/page/:slug" }
   ],
   "crons": [
     {
