@@ -1,11 +1,22 @@
 {
   "cleanUrls": true,
-  "rewrites": [
-    { "source": "/sitemap.xml", "destination": "/api/sitemap.xml" },
-    { "source": "/robots.txt", "destination": "/api/robots.txt" },
-    { "source": "/", "destination": "/api/page/home" },
-    { "source": "/country/:name", "destination": "/index.html" },
-    { "source": "/:slug", "destination": "/api/page/:slug" }
+  "routes": [
+    { "src": "^/api/sitemap.xml$", "dest": "/api/sitemap.xml.js" },
+    { "src": "^/api/robots.txt$", "dest": "/api/robots.txt.js" },
+    { "src": "^/api/articles$", "dest": "/api/articles/index.js" },
+    { "src": "^/api/articles/([^/]+)$", "dest": "/api/articles/[slug].js?slug=$1" },
+    { "src": "^/api/page/home$", "dest": "/api/page/home.js" },
+    { "src": "^/api/page/([^/]+)$", "dest": "/api/page/[slug].js?slug=$1" },
+    { "src": "^/api/write-articles$", "dest": "/api/write-articles/index.js" },
+    { "src": "^/api/fetch-news$", "dest": "/api/fetch-news/index.js" },
+    { "src": "/sitemap.xml", "dest": "/api/sitemap.xml.js" },
+    { "src": "/robots.txt", "dest": "/api/robots.txt.js" },
+    { "src": "^/$", "dest": "/api/page/home.js" },
+    { "src": "^/country/([^/]+)$", "dest": "/index.html" },
+    { "src": "^/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "^/((?!api/|assets/|favicon.ico|sitemap.xml|robots.txt)[^/]+)$", "dest": "/api/page/[slug].js?slug=$1" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ],
   "crons": [
     {
