@@ -11,6 +11,8 @@ export default function CountryPage() {
   const [loading, setLoading] = useState(true)
   const [selectedTopic, setSelectedTopic] = useState('All')
 
+  const basePath = window.location.pathname.startsWith('/news') ? '/news' : '';
+
   // Clean country name for display (e.g., 'germany' -> 'Germany')
   const displayName = countryName.charAt(0).toUpperCase() + countryName.slice(1).toLowerCase()
 
@@ -55,7 +57,7 @@ export default function CountryPage() {
   return (
     <div>
       {/* Back Button */}
-      <button className="back-button" onClick={() => navigate('/')}>
+      <button className="back-button" onClick={() => navigate(basePath || '/')}>
         <ArrowLeft size={16} /> Back to all resources
       </button>
 
@@ -112,7 +114,7 @@ export default function CountryPage() {
                 <span className="article-date">{art.date}</span>
               </div>
               
-              <div className="article-card-body" onClick={() => navigate(`/${art.slug}`)}>
+              <div className="article-card-body" onClick={() => navigate(`${basePath}/${art.slug}`)}>
                 <h2 className="article-card-title">{art.title}</h2>
                 <p className="article-card-desc">{art.meta_description}</p>
               </div>
@@ -123,7 +125,7 @@ export default function CountryPage() {
                   <span>👁️ {art.views || 0} views</span>
                 </div>
                 <Link 
-                  to={`/${art.slug}`}
+                  to={`${basePath}/${art.slug}`}
                   style={{ 
                     color: 'var(--secondary-accent)', 
                     textDecoration: 'none', 

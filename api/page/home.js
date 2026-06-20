@@ -72,6 +72,11 @@ export default async function handler(req, res) {
 
     const totalArticles = articles.length;
 
+    // Detect if proxied under /news base path
+    const host = req.headers.host || '';
+    const isProxied = host.includes('studplex.com') && !host.includes('news.');
+    const basePath = isProxied ? '/news' : '';
+
     const articleCards = articles.map(article => {
       const slug = esc(article.slug);
       const title = esc(article.title || article.meta_title || 'Untitled');
@@ -82,12 +87,15 @@ export default async function handler(req, res) {
       const readTime = article.read_time || 0;
       const views = article.views || 0;
 
+      // Deduplicate category and country tags (e.g. "Japan" and "Japan")
+      const showCountryBadge = country && country.toLowerCase() !== category.toLowerCase();
+
       return `
-        <a href="/${slug}" class="card-link">
+        <a href="${basePath}/${slug}" class="card-link">
           <article class="card">
             <div class="card-badges">
               ${category ? `<span class="badge badge-category">${category}</span>` : ''}
-              ${country ? `<span class="badge badge-country">${country}</span>` : ''}
+              ${showCountryBadge ? `<span class="badge badge-country">${country}</span>` : ''}
             </div>
             <h2 class="card-title">${title}</h2>
             ${description ? `<p class="card-desc">${description}</p>` : ''}
@@ -379,9 +387,9 @@ export default async function handler(req, res) {
   <!-- Header -->
   <header class="header">
     <div class="header-inner">
-      <a href="/" class="logo">Stud<span class="logo-accent">plex</span> News</a>
+      <a href="${basePath || '/'}" class="logo">Stud<span class="logo-accent">plex</span> News</a>
       <nav class="nav">
-        <a href="/">Home</a>
+        <a href="${basePath || '/'}">Home</a>
         <a href="https://studplex.com">Studplex</a>
       </nav>
     </div>
@@ -399,16 +407,16 @@ export default async function handler(req, res) {
   <!-- Country Filter Bar -->
   <div class="country-bar-wrapper">
     <div class="country-bar">
-      <a href="/country/Germany" class="country-btn">🇩🇪 Germany</a>
-      <a href="/country/UK" class="country-btn">🇬🇧 UK</a>
-      <a href="/country/USA" class="country-btn">🇺🇸 USA</a>
-      <a href="/country/Canada" class="country-btn">🇨🇦 Canada</a>
-      <a href="/country/Australia" class="country-btn">🇦🇺 Australia</a>
-      <a href="/country/Netherlands" class="country-btn">🇳🇱 Netherlands</a>
-      <a href="/country/Sweden" class="country-btn">🇸🇪 Sweden</a>
-      <a href="/country/France" class="country-btn">🇫🇷 France</a>
-      <a href="/country/Switzerland" class="country-btn">🇨🇭 Switzerland</a>
-      <a href="/country/Japan" class="country-btn">🇯🇵 Japan</a>
+      <a href="${basePath}/country/Germany" class="country-btn">🇩🇪 Germany</a>
+      <a href="${basePath}/country/UK" class="country-btn">🇬🇧 UK</a>
+      <a href="${basePath}/country/USA" class="country-btn">🇺🇸 USA</a>
+      <a href="${basePath}/country/Canada" class="country-btn">🇨🇦 Canada</a>
+      <a href="${basePath}/country/Australia" class="country-btn">🇦🇺 Australia</a>
+      <a href="${basePath}/country/Netherlands" class="country-btn">🇳🇱 Netherlands</a>
+      <a href="${basePath}/country/Sweden" class="country-btn">🇸🇪 Sweden</a>
+      <a href="${basePath}/country/France" class="country-btn">🇫🇷 France</a>
+      <a href="${basePath}/country/Switzerland" class="country-btn">🇨🇭 Switzerland</a>
+      <a href="${basePath}/country/Japan" class="country-btn">🇯🇵 Japan</a>
     </div>
   </div>
 
@@ -422,9 +430,9 @@ export default async function handler(req, res) {
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-links">
-      <a href="/">Home</a>
+      <a href="${basePath || '/'}">Home</a>
       <a href="https://studplex.com">Studplex</a>
-      <a href="/sitemap.xml">Sitemap</a>
+      <a href="${basePath}/sitemap.xml">Sitemap</a>
     </div>
     <p>&copy; ${new Date().getFullYear()} <a href="https://studplex.com">Studplex</a>. All rights reserved.</p>
   </footer>

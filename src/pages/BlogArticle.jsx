@@ -12,6 +12,8 @@ export default function BlogArticle() {
   const [article, setArticle] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  const basePath = window.location.pathname.startsWith('/news') ? '/news' : '';
+
   useEffect(() => {
     setLoading(true)
     fetch(`${BASE_URL}/api/articles/${slug}`)
@@ -129,7 +131,7 @@ export default function BlogArticle() {
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
         <h3>Guide not found</h3>
         <p style={{ marginTop: '8px', marginBottom: '24px' }}>The resource you are looking for does not exist or has been moved.</p>
-        <button className="back-button" onClick={() => navigate('/')} style={{ margin: '0 auto' }}>
+        <button className="back-button" onClick={() => navigate(basePath || '/')} style={{ margin: '0 auto' }}>
           <ArrowLeft size={16} /> Back to Guides
         </button>
       </div>
@@ -139,7 +141,7 @@ export default function BlogArticle() {
   return (
     <div>
       {/* Back Link */}
-      <button className="back-button" onClick={() => navigate('/')}>
+      <button className="back-button" onClick={() => navigate(basePath || '/')}>
         <ArrowLeft size={16} /> Back to all guides
       </button>
 

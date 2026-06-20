@@ -354,8 +354,25 @@ function AppShell() {
               />
             } 
           />
+          <Route 
+            path="/news" 
+            element={
+              <BlogHome 
+                searchQuery={searchQuery} 
+                setSearchQuery={setSearchQuery}
+                selectedCountry={selectedCountry} 
+                setSelectedCountry={setSelectedCountry}
+                selectedTopic={selectedTopic} 
+                setSelectedTopic={setSelectedTopic}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+              />
+            } 
+          />
           <Route path="/country/:countryName" element={<CountryPage />} />
+          <Route path="/news/country/:countryName" element={<CountryPage />} />
           <Route path="/:slug" element={<BlogArticle />} />
+          <Route path="/news/:slug" element={<BlogArticle />} />
         </Routes>
       </main>
 

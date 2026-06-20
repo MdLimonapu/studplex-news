@@ -9,6 +9,8 @@ export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry,
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
+  const basePath = window.location.pathname.startsWith('/news') ? '/news' : '';
+
   useEffect(() => {
     fetch(`${BASE_URL}/api/articles`)
       .then(res => res.json())
@@ -186,7 +188,7 @@ export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry,
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/country/${art.country.toLowerCase()}`);
+                        navigate(`${basePath}/country/${art.country.toLowerCase()}`);
                       }}
                       title={`View all ${art.country} guides`}
                     >
@@ -197,7 +199,7 @@ export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry,
                 <span className="article-date">{art.date}</span>
               </div>
               
-              <div className="article-card-body" onClick={() => navigate(`/${art.slug}`)}>
+              <div className="article-card-body" onClick={() => navigate(`${basePath}/${art.slug}`)}>
                 <h2 className="article-card-title">{art.title}</h2>
                 <p className="article-card-desc">{art.meta_description}</p>
               </div>
@@ -208,7 +210,7 @@ export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry,
                   <span>👁️ {art.views || 0} views</span>
                 </div>
                 <Link 
-                  to={`/${art.slug}`}
+                  to={`${basePath}/${art.slug}`}
                   style={{ 
                     color: 'var(--secondary-accent)', 
                     textDecoration: 'none', 

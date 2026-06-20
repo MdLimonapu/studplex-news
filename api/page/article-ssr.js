@@ -131,6 +131,11 @@ export default async function handler(req, res) {
     // Convert markdown to HTML
     const contentHtml = marked(article.content || '');
 
+    // Detect if proxied under /news base path
+    const host = req.headers.host || '';
+    const isProxied = host.includes('studplex.com') && !host.includes('news.');
+    const basePath = isProxied ? '/news' : '';
+
     // Escaped values for safe attribute insertion
     const safeTitle = escapeHtml(article.meta_title || article.title);
     const safeDescription = escapeHtml(article.meta_description || '');
@@ -142,6 +147,9 @@ export default async function handler(req, res) {
     const displayViews = (article.views || 0) + 1;
     const readTime = article.read_time || 0;
     const tags = article.tags || [];
+
+    // Deduplicate category and country tags (e.g. "Japan" and "Japan")
+    const showCountryBadge = safeCountry && safeCountry.toLowerCase() !== safeCategory.toLowerCase();
 
     // JSON-LD structured data
     const jsonLd = JSON.stringify({
@@ -494,17 +502,17 @@ export default async function handler(req, res) {
 <body>
   <header>
     <div class="header-inner">
-      <div class="logo"><a href="/">Stud<span class="accent">plex</span> News</a></div>
+      <div class="logo"><a href="${basePath || '/'}">Stud<span class="accent">plex</span> News</a></div>
       <nav>
-        <a href="/">Home</a>
-        <a href="/">Guides</a>
-        <a href="/">Countries</a>
+        <a href="${basePath || '/'}">Home</a>
+        <a href="${basePath || '/'}">Guides</a>
+        <a href="${basePath || '/'}">Countries</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <a href="/" class="back-link">&larr; Back to all guides</a>
+    <a href="${basePath || '/'}" class="back-link">&larr; Back to all guides</a>
     <article class="article-container">
       <h1>${escapeHtml(article.title)}</h1>
       <div class="meta-bar">
@@ -518,7 +526,7 @@ export default async function handler(req, res) {
           <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           ${displayViews.toLocaleString()} views
         </span>
-        ${safeCountry ? `<span><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${safeCountry}</span>` : ''}
+        ${showCountryBadge ? `<span><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${safeCountry}</span>` : ''}
       </div>
 
       <div class="article-body">
@@ -535,7 +543,7 @@ export default async function handler(req, res) {
   <footer>
     <div class="footer-links">
       <a href="https://studplex.com">Studplex</a>
-      <a href="https://studplex.com/news">News</a>
+      <a href="${basePath || '/'}">News</a>
     </div>
     <p>&copy; ${new Date().getFullYear()} <a href="https://studplex.com">Studplex</a>. All rights reserved.</p>
   </footer>
