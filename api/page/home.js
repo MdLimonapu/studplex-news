@@ -74,7 +74,7 @@ export default async function handler(req, res) {
 
     // Detect if proxied under /news base path
     const forwardedHost = req.headers['x-forwarded-host'] || req.headers.host || '';
-    const isProxied = forwardedHost.includes('studplex.com') && !forwardedHost.includes('news.');
+    const isProxied = req.query.proxied === 'true' || (forwardedHost.includes('studplex.com') && !forwardedHost.includes('news.'));
     const basePath = isProxied ? '/news' : '';
 
     const articleCards = articles.map(article => {
