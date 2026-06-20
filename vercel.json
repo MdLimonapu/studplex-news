@@ -13,7 +13,7 @@
     { "src": "/robots.txt", "dest": "/api/robots.txt" },
     { "src": "^/$", "dest": "/api/page/home" },
     { "src": "^/assets/(.*)", "dest": "/assets/$1" },
-    { "src": "^/((?!api/|assets/|favicon.ico|sitemap.xml|robots.txt|index.html)[^/]+)$", "dest": "/api/page/article-ssr?slug=$1" },
+    { "src": "^/((?!api/|assets/|favicon.ico|sitemap.xml|robots.txt|index.html|index)[^/]+)$", "dest": "/api/page/article-ssr?slug=$1" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
