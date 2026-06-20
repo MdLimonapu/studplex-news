@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Search, MapPin, Tag } from 'lucide-react'
 
-const BASE_URL = import.meta.env.VITE_API_URL || "";
+const basePath = window.location.pathname.startsWith('/news') ? '/news' : '';
+const BASE_URL = import.meta.env.VITE_API_URL || basePath;
 
 export default function BlogHome({ searchQuery, setSearchQuery, selectedCountry, setSelectedCountry, selectedTopic, setSelectedTopic, sortBy, setSortBy }) {
   const [articles, setArticles] = useState([])

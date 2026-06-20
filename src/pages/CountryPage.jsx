@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, BookOpen } from 'lucide-react'
 
-const BASE_URL = import.meta.env.VITE_API_URL || "";
+const basePath = window.location.pathname.startsWith('/news') ? '/news' : '';
+const BASE_URL = import.meta.env.VITE_API_URL || basePath;
 
 export default function CountryPage() {
   const { countryName } = useParams()

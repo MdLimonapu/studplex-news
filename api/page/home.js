@@ -77,25 +77,67 @@ export default async function handler(req, res) {
     const isProxied = req.query.proxied === 'true' || (forwardedHost.includes('studplex.com') && !forwardedHost.includes('news.'));
     const basePath = isProxied ? '/news' : '';
 
-    const articleCards = articles.map(article => {
+    // Extract query parameters
+    const search = req.query.search || '';
+    const category = req.query.category || '';
+    const sort = req.query.sort || 'latest';
+    const country = req.query.country || '';
+
+    // Extract all unique categories from original active articles list
+    const allCategories = ['All', ...new Set(articles.map(art => art.category).filter(Boolean))];
+
+    // Filter articles in-memory
+    let filtered = [...articles];
+
+    if (country) {
+      filtered = filtered.filter(art => (art.country || '').toLowerCase() === country.toLowerCase());
+    }
+
+    if (category && category.toLowerCase() !== 'all') {
+      filtered = filtered.filter(art => (art.category || '').toLowerCase() === category.toLowerCase());
+    }
+
+    if (search) {
+      const q = search.toLowerCase().trim();
+      filtered = filtered.filter(art => 
+        (art.title || '').toLowerCase().includes(q) ||
+        (art.meta_description || '').toLowerCase().includes(q) ||
+        (art.category || '').toLowerCase().includes(q) ||
+        (art.country || '').toLowerCase().includes(q) ||
+        (Array.isArray(art.tags) && art.tags.some(t => String(t).toLowerCase().includes(q)))
+      );
+    }
+
+    // Sort
+    if (sort === 'popular') {
+      filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+    } else if (sort === 'read_time') {
+      filtered.sort((a, b) => (b.read_time || 0) - (a.read_time || 0));
+    } else {
+      filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    const matchedArticlesCount = filtered.length;
+
+    const articleCards = filtered.map(article => {
       const slug = esc(article.slug);
       const title = esc(article.title || article.meta_title || 'Untitled');
       const description = esc(article.meta_description || '');
-      const category = esc(article.category || '');
-      const country = esc(article.country || '');
+      const categoryVal = esc(article.category || '');
+      const countryVal = esc(article.country || '');
       const date = formatDate(article.date);
       const readTime = article.read_time || 0;
       const views = article.views || 0;
 
       // Deduplicate category and country tags (e.g. "Japan" and "Japan")
-      const showCountryBadge = country && country.toLowerCase() !== category.toLowerCase();
+      const showCountryBadge = countryVal && countryVal.toLowerCase() !== categoryVal.toLowerCase();
 
       return `
         <a href="${basePath}/${slug}" class="card-link">
           <article class="card">
             <div class="card-badges">
-              ${category ? `<span class="badge badge-category">${category}</span>` : ''}
-              ${showCountryBadge ? `<span class="badge badge-country">${country}</span>` : ''}
+              ${categoryVal ? `<span class="badge badge-category">${categoryVal}</span>` : ''}
+              ${showCountryBadge ? `<span class="badge badge-country">${countryVal}</span>` : ''}
             </div>
             <h2 class="card-title">${title}</h2>
             ${description ? `<p class="card-desc">${description}</p>` : ''}
@@ -110,27 +152,47 @@ export default async function handler(req, res) {
         </a>`;
     }).join('');
 
+    const seoTitle = country
+      ? `Study Abroad in ${esc(country)}: Guides &amp; News | Studplex`
+      : `Studplex Guides &amp; News — Study Abroad Resources`;
+
+    const seoDesc = country
+      ? `Expert study abroad guides, visa tips, scholarship updates, and student life advice for ${esc(country)}.`
+      : `Expert study abroad guides, visa tips, scholarship updates, and student life advice for Germany, UK, USA, Canada, Australia, Netherlands, Sweden, France, Switzerland, and Japan.`;
+
+    const pageTitle = country 
+      ? `Study Abroad Guides &amp; News for ${esc(country)}` 
+      : `Study Abroad Guides &amp; News`;
+
+    const pageDesc = country 
+      ? `Expert resources, visa requirements, and guides for students heading to ${esc(country)}.`
+      : `Expert resources for international students`;
+
+    const canonicalUrl = country
+      ? `https://studplex.com/news/country/${esc(country)}`
+      : `https://studplex.com/news`;
+
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Studplex Guides &amp; News — Study Abroad Resources</title>
-  <meta name="description" content="Expert study abroad guides, visa tips, scholarship updates, and student life advice for Germany, UK, USA, Canada, Australia, Netherlands, Sweden, France, Switzerland, and Japan.">
+  <title>${seoTitle}</title>
+  <meta name="description" content="${seoDesc}">
   <meta name="google-site-verification" content="kIDo3GYT309SU6JrISBV0mv2bh_4UimccrL6r6RgO4M" />
-  <link rel="canonical" href="https://studplex.com/news" />
+  <link rel="canonical" href="${canonicalUrl}" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Studplex Guides &amp; News — Study Abroad Resources" />
-  <meta property="og:description" content="Expert study abroad guides, visa tips, scholarship updates, and student life advice for Germany, UK, USA, Canada, Australia, Netherlands, Sweden, France, Switzerland, and Japan." />
-  <meta property="og:url" content="https://studplex.com/news" />
+  <meta property="og:title" content="${seoTitle}" />
+  <meta property="og:description" content="${seoDesc}" />
+  <meta property="og:url" content="${canonicalUrl}" />
   <meta property="og:site_name" content="Studplex News" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Studplex Guides &amp; News — Study Abroad Resources" />
-  <meta name="twitter:description" content="Expert study abroad guides, visa tips, scholarship updates, and student life advice for Germany, UK, USA, Canada, Australia, Netherlands, Sweden, France, Switzerland, and Japan." />
+  <meta name="twitter:title" content="${seoTitle}" />
+  <meta name="twitter:description" content="${seoDesc}" />
 
   <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7860269432378841" crossorigin="anonymous"></script>
@@ -367,6 +429,158 @@ export default async function handler(req, res) {
     .footer-links a { color: #cbd5e1; font-weight: 500; }
     .footer-links a:hover { color: #f97316; }
 
+    /* ── Filters Section ── */
+    .filters-container {
+      max-width: 1200px;
+      margin: 32px auto 0;
+      padding: 0 24px;
+    }
+    .filters-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .search-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 280px;
+      max-width: 480px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 12px 16px 12px 42px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: #1e293b;
+      outline: none;
+      transition: all 0.2s;
+      background: #fff;
+    }
+    .search-input:focus {
+      border-color: #f97316;
+      box-shadow: 0 0 0 3px rgba(249,115,22,0.15);
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #64748b;
+      width: 18px;
+      height: 18px;
+      pointer-events: none;
+    }
+    .sort-wrapper {
+      position: relative;
+    }
+    .sort-select {
+      appearance: none;
+      padding: 12px 36px 12px 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 0.95rem;
+      font-family: inherit;
+      font-weight: 500;
+      color: #334155;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .sort-select:focus {
+      border-color: #f97316;
+    }
+    .sort-arrow {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      width: 16px;
+      height: 16px;
+      color: #64748b;
+    }
+    .categories-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+      margin-bottom: 8px;
+    }
+    .categories-row::-webkit-scrollbar { display: none; }
+    .category-chip {
+      padding: 8px 16px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #475569;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .category-chip:hover {
+      border-color: #cbd5e1;
+      color: #1e293b;
+    }
+    .category-chip.active {
+      background: #f97316;
+      border-color: #f97316;
+      color: #fff;
+    }
+    
+    /* ── Empty State ── */
+    .empty-state {
+      text-align: center;
+      padding: 64px 24px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin: 24px 0;
+      width: 100%;
+    }
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+    .empty-state h3 {
+      font-size: 1.25rem;
+      color: #0f172a;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .empty-state p {
+      color: #64748b;
+      margin-bottom: 20px;
+    }
+    .reset-btn {
+      padding: 10px 20px;
+      background: #f97316;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .reset-btn:hover {
+      background: #ea580c;
+    }
+
+    .country-btn.active {
+      background: #f97316;
+      color: #fff;
+      border-color: #f97316;
+      box-shadow: 0 4px 12px rgba(249,115,22,0.25);
+    }
+
     /* ── Responsive ── */
     @media (max-width: 1024px) {
       .grid { grid-template-columns: repeat(2, 1fr); }
@@ -379,6 +593,8 @@ export default async function handler(req, res) {
       .country-bar { justify-content: flex-start; }
       .nav { gap: 16px; }
       .nav a { font-size: 0.82rem; }
+      .filters-row { flex-direction: column; align-items: stretch; }
+      .search-wrapper { max-width: 100%; }
     }
   </style>
 </head>
@@ -397,34 +613,86 @@ export default async function handler(req, res) {
 
   <!-- Hero -->
   <section class="hero">
-    <h1>Study Abroad Guides &amp; News</h1>
-    <p>Expert resources for international students</p>
+    <h1>${pageTitle}</h1>
+    <p>${pageDesc}</p>
   </section>
 
   <!-- Article Count -->
-  <div class="article-count">${totalArticles} article${totalArticles !== 1 ? 's' : ''} published</div>
+  <div class="article-count">${matchedArticlesCount} guide${matchedArticlesCount !== 1 ? 's' : ''} found ${search || category || country ? `matching filters` : `published`}</div>
 
   <!-- Country Filter Bar -->
   <div class="country-bar-wrapper">
     <div class="country-bar">
-      <a href="${basePath}/country/Germany" class="country-btn">🇩🇪 Germany</a>
-      <a href="${basePath}/country/UK" class="country-btn">🇬🇧 UK</a>
-      <a href="${basePath}/country/USA" class="country-btn">🇺🇸 USA</a>
-      <a href="${basePath}/country/Canada" class="country-btn">🇨🇦 Canada</a>
-      <a href="${basePath}/country/Australia" class="country-btn">🇦🇺 Australia</a>
-      <a href="${basePath}/country/Netherlands" class="country-btn">🇳🇱 Netherlands</a>
-      <a href="${basePath}/country/Sweden" class="country-btn">🇸🇪 Sweden</a>
-      <a href="${basePath}/country/France" class="country-btn">🇫🇷 France</a>
-      <a href="${basePath}/country/Switzerland" class="country-btn">🇨🇭 Switzerland</a>
-      <a href="${basePath}/country/Japan" class="country-btn">🇯🇵 Japan</a>
+      <a href="${country.toLowerCase() === 'germany' ? (basePath || '/') : `${basePath}/country/Germany`}" class="country-btn ${country.toLowerCase() === 'germany' ? 'active' : ''}">🇩🇪 Germany</a>
+      <a href="${country.toLowerCase() === 'uk' ? (basePath || '/') : `${basePath}/country/UK`}" class="country-btn ${country.toLowerCase() === 'uk' ? 'active' : ''}">🇬🇧 UK</a>
+      <a href="${country.toLowerCase() === 'usa' ? (basePath || '/') : `${basePath}/country/USA`}" class="country-btn ${country.toLowerCase() === 'usa' ? 'active' : ''}">🇺🇸 USA</a>
+      <a href="${country.toLowerCase() === 'canada' ? (basePath || '/') : `${basePath}/country/Canada`}" class="country-btn ${country.toLowerCase() === 'canada' ? 'active' : ''}">🇨🇦 Canada</a>
+      <a href="${country.toLowerCase() === 'australia' ? (basePath || '/') : `${basePath}/country/Australia`}" class="country-btn ${country.toLowerCase() === 'australia' ? 'active' : ''}">🇦🇺 Australia</a>
+      <a href="${country.toLowerCase() === 'netherlands' ? (basePath || '/') : `${basePath}/country/Netherlands`}" class="country-btn ${country.toLowerCase() === 'netherlands' ? 'active' : ''}">🇳🇱 Netherlands</a>
+      <a href="${country.toLowerCase() === 'sweden' ? (basePath || '/') : `${basePath}/country/Sweden`}" class="country-btn ${country.toLowerCase() === 'sweden' ? 'active' : ''}">🇸🇪 Sweden</a>
+      <a href="${country.toLowerCase() === 'france' ? (basePath || '/') : `${basePath}/country/France`}" class="country-btn ${country.toLowerCase() === 'france' ? 'active' : ''}">🇫🇷 France</a>
+      <a href="${country.toLowerCase() === 'switzerland' ? (basePath || '/') : `${basePath}/country/Switzerland`}" class="country-btn ${country.toLowerCase() === 'switzerland' ? 'active' : ''}">🇨🇭 Switzerland</a>
+      <a href="${country.toLowerCase() === 'japan' ? (basePath || '/') : `${basePath}/country/Japan`}" class="country-btn ${country.toLowerCase() === 'japan' ? 'active' : ''}">🇯🇵 Japan</a>
     </div>
   </div>
 
-  <!-- Articles Grid -->
+  <!-- Filters Section -->
+  <div class="filters-container">
+    <form id="filtersForm" method="GET" action="">
+      ${country ? `<input type="hidden" name="country" value="${esc(country)}">` : ''}
+      <input type="hidden" id="categoryInput" name="category" value="${esc(category)}">
+
+      <div class="filters-row">
+        <!-- Search bar -->
+        <div class="search-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" name="search" value="${esc(search)}" class="search-input" placeholder="Search guides & news..." autocomplete="off">
+        </div>
+
+        <!-- Sort drop-down -->
+        <div class="sort-wrapper">
+          <select name="sort" class="sort-select" onchange="document.getElementById('filtersForm').submit()">
+            <option value="latest" ${sort === 'latest' ? 'selected' : ''}>📅 Latest Articles</option>
+            <option value="popular" ${sort === 'popular' ? 'selected' : ''}>🔥 Most Viewed</option>
+            <option value="read_time" ${sort === 'read_time' ? 'selected' : ''}>⏱️ Reading Time</option>
+          </select>
+          <svg class="sort-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Categories selection -->
+      <div class="categories-row">
+        ${allCategories.map(cat => {
+          const isActive = (!category && cat === 'All') || (category.toLowerCase() === cat.toLowerCase());
+          return `
+            <button type="button" class="category-chip ${isActive ? 'active' : ''}" onclick="selectCategory('${esc(cat)}')">
+              ${esc(cat)}
+            </button>
+          `;
+        }).join('')}
+      </div>
+    </form>
+  </div>
+
+  <!-- Articles Grid / Empty State -->
   <div class="grid-wrapper">
-    <div class="grid">
-      ${articleCards}
-    </div>
+    ${articleCards ? `
+      <div class="grid">
+        ${articleCards}
+      </div>
+    ` : `
+      <div class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <h3>No articles found</h3>
+        <p>We couldn't find any articles matching your filters. Try different search terms or categories.</p>
+        <button type="button" class="reset-btn" onclick="resetFilters()">Reset Filters</button>
+      </div>
+    `}
   </div>
 
   <!-- Footer -->
@@ -436,6 +704,22 @@ export default async function handler(req, res) {
     </div>
     <p>&copy; ${new Date().getFullYear()} <a href="https://studplex.com">Studplex</a>. All rights reserved.</p>
   </footer>
+
+  <script>
+    function selectCategory(cat) {
+      document.getElementById('categoryInput').value = cat === 'All' ? '' : cat;
+      document.getElementById('filtersForm').submit();
+    }
+    function resetFilters() {
+      // Clear filters keeping only country if active
+      const countryVal = "${esc(country)}";
+      if (countryVal) {
+        window.location.href = window.location.pathname;
+      } else {
+        window.location.href = "${basePath || '/'}";
+      }
+    }
+  </script>
 
 </body>
 </html>`;

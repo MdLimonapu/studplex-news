@@ -4,7 +4,8 @@ import { ArrowLeft, Clock, Eye, Calendar, BookOpen } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
-const BASE_URL = import.meta.env.VITE_API_URL || "";
+const basePath = window.location.pathname.startsWith('/news') ? '/news' : '';
+const BASE_URL = import.meta.env.VITE_API_URL || basePath;
 
 export default function BlogArticle() {
   const { slug } = useParams()
