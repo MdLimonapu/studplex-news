@@ -1,8 +1,6 @@
 import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGO_URI;
-// Ensure GEMINI_API_KEY is configured in Vercel environment variables
-
 
 async function callGemini(prompt, apiKey) {
   const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest"];
@@ -32,7 +30,6 @@ async function callGemini(prompt, apiKey) {
     } catch (err) {
       console.warn(`⚠️ Gemini model ${model} failed, trying next:`, err.message);
       lastError = err;
-      // Wait 1 second before trying next model
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
@@ -40,13 +37,103 @@ async function callGemini(prompt, apiKey) {
   throw new Error(`All Gemini models failed. Last error: ${lastError.message}`);
 }
 
+function extractBlock(name, textContent) {
+  const pattern = new RegExp(`---${name}---\\s*\\n([\\s\\S]*?)(?=\\n---[A-Z_]+---|$)`, 'i');
+  const match = textContent.match(pattern);
+  return match ? match[1].trim() : "";
+}
+
+async function generateArticleForCountry(country, existingSlugs, apiKey) {
+  // We ask Gemini to select a topic AND write the article in a single prompt to save API requests and prevent 429 rate limit triggers.
+  const articlePrompt = `You are an experienced study abroad advisor, elite academic copywriter, and SEO expert.
+
+First, brainstorm and choose a highly relevant, practical, and highly-searched study abroad topic specifically for international students planning to go to: ${country} (e.g. visa slots, blocked accounts, part-time jobs, student housing, cost of living). Do not duplicate these existing slugs: ${JSON.stringify(existingSlugs.slice(-30))}.
+
+Write a comprehensive, high-quality, and deeply informative guide/article on this chosen topic, specifically tailored for ${country}. All rules, visa specifications, accommodation details, part-time hour limits, tax brackets, and costs must reflect the reality of studying in ${country}.
+
+Make sure the article has these attributes:
+1. Long-form and extremely thorough (at least 1000 words).
+2. Humanlike Tone & Empathy: Write in a warm, expert, conversational, and highly natural human voice. Do NOT sound like an AI. Avoid robotic transition phrases or corporate buzzwords (do not use words like "delve", "tapestry", "testament", "moreover", "furthermore", "in conclusion", "it is important to note"). Use varying sentence lengths, personal pronouns, and realistic student-focused scenarios.
+3. Well-structured in Markdown using H2 (##) and H3 (###) headers, bullet points, numbered lists, and bold text.
+4. Contains a detailed HTML or Markdown table summarizing key steps, costs, or requirements (e.g. document checklists or timelines) for ${country}.
+5. Includes internal linking references back to the main website domain (e.g., 'Use the Studplex Matching Engine to find matching courses' or 'check your detailed eligibility on the Studplex Roadmap page').
+6. SEO optimized with natural keyword integration.
+
+You must format your response EXACTLY as text with the following delimiters:
+
+---SLUG---
+[Generate a clean URL slug for the chosen topic, e.g. germany-student-visa-guide]
+
+---TITLE---
+[Enter the Compelling Title of the article here]
+
+---META_TITLE---
+[Enter the Meta Title here (maximum 60 characters)]
+
+---META_DESCRIPTION---
+[Enter the Meta Description here (maximum 160 characters)]
+
+---CATEGORY---
+${country}
+
+---TAGS---
+[Comma-separated list of tags, e.g. housing, study abroad, guide]
+
+---READ_TIME---
+[Enter estimated reading time in minutes as a number, e.g. 7]
+
+---CONTENT---
+[Enter the complete, detailed article body in Markdown format here]`;
+
+  const articleText = await callGemini(articlePrompt, apiKey);
+
+  const slug = extractBlock("SLUG", articleText) || `${country.toLowerCase()}-study-guide-${Date.now()}`;
+  const title = extractBlock("TITLE", articleText) || `Study Abroad in ${country}`;
+  const metaTitle = extractBlock("META_TITLE", articleText) || title.substring(0, 60);
+  const metaDescription = extractBlock("META_DESCRIPTION", articleText) || `Learn more about studying abroad in ${country}.`;
+  const category = extractBlock("CATEGORY", articleText) || country;
+  const tagsStr = extractBlock("TAGS", articleText);
+  const readTimeStr = extractBlock("READ_TIME", articleText);
+  const content = extractBlock("CONTENT", articleText);
+
+  if (!content) {
+    throw new Error(`Failed to parse content from Gemini response for ${country}`);
+  }
+
+  const tags = tagsStr.split(",").map(t => t.trim()).filter(Boolean);
+  if (tags.length === 0) {
+    tags.push(category.toLowerCase());
+  }
+
+  let readTime = 7;
+  const readTimeMatch = readTimeStr.match(/\d+/);
+  if (readTimeMatch) {
+    readTime = parseInt(readTimeMatch[0], 10);
+  }
+
+  const views = Math.floor(Math.random() * 80) + 20;
+
+  return {
+    slug,
+    title,
+    meta_title: metaTitle,
+    meta_description: metaDescription,
+    category,
+    country: country,
+    tags,
+    read_time: readTime,
+    content,
+    views,
+    date: new Date().toISOString().split('T')[0]
+  };
+}
+
 export default async function handler(req, res) {
-  // Simple cron verification check or support GET/POST
+  const uri = process.env.MONGO_URI;
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Authorize request to prevent external spam if security key is set
   const authHeader = req.headers.authorization;
   if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -60,7 +147,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'GEMINI_API_KEY is not configured' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY.split(",")[0].trim();
+  const apiKeys = process.env.GEMINI_API_KEY.split(",").map(k => k.trim()).filter(Boolean);
 
   let mongoClient;
   try {
@@ -78,147 +165,45 @@ export default async function handler(req, res) {
     const db = mongoClient.db(dbName);
     const articlesCol = db.collection('articles');
 
-    // 1. Fetch existing articles to rotate countries dynamically and avoid duplicate slugs
-    const existingArticles = await articlesCol.find({}, { projection: { slug: 1, country: 1 } }).toArray();
+    const existingArticles = await articlesCol.find({}, { projection: { slug: 1 } }).toArray();
     const existingSlugs = existingArticles.map(a => a.slug);
 
-    // Compute counts for the 10 target countries
     const countries = ["Germany", "UK", "USA", "Canada", "Australia", "Netherlands", "Sweden", "France", "Switzerland", "Japan"];
-    const countryCounts = {};
-    countries.forEach(c => { countryCounts[c] = 0; });
-    existingArticles.forEach(a => {
-      if (a.country && countries.includes(a.country)) {
-        countryCounts[a.country] += 1;
-      }
-    });
 
-    // Select the country with the lowest count
-    let targetCountry = "Germany";
-    let minCount = Infinity;
-    countries.forEach(c => {
-      if (countryCounts[c] < minCount) {
-        minCount = countryCounts[c];
-        targetCountry = c;
-      }
-    });
+    // Trigger all 10 countries concurrently. Since we consolidated to 1 API call per country,
+    // this triggers exactly 10 requests total, remaining comfortably under the 15 RPM free tier limit.
+    const results = await Promise.all(
+      countries.map(async (country, index) => {
+        const apiKey = apiKeys[index % apiKeys.length];
+        
+        // Stagger calls by 1.5s to prevent concurrent rate limits and API spikes
+        if (index > 0) {
+          await new Promise(resolve => setTimeout(resolve, index * 1500));
+        }
 
-    // 2. Ask Gemini to brainstorm 1 new highly-searched topic for the selected country
-    const brainstormPrompt = `You are a master academic editor. Generate a JSON object representing 1 new highly relevant study abroad question or topic for international students planning to go to: ${targetCountry}. Focus on a practical, highly-searched question (e.g. visa slots, blocked accounts, part-time jobs, student housing). Do not duplicate these existing slugs: ${JSON.stringify(existingSlugs.slice(-100))}.
-    
-    Provide the response as raw JSON matching this structure:
-    {
-      "id": "slug-name",
-      "title": "Compelling Title",
-      "prompt": "Description instruction prompt"
-    }`;
+        try {
+          const article = await generateArticleForCountry(country, existingSlugs, apiKey);
+          return { country, article, success: true };
+        } catch (err) {
+          console.error(`Failed to generate article for ${country}:`, err);
+          return { country, error: err.message, success: false };
+        }
+      })
+    );
 
-    let brainstormText = await callGemini(brainstormPrompt, apiKey);
-    // Clean any markdown formatting block around json
-    brainstormText = brainstormText.replace(/```json\s*/i, '').replace(/```\s*$/i, '').trim();
-    
-    const topic = JSON.parse(brainstormText);
-    if (!topic.id || !topic.title || !topic.prompt) {
-      throw new Error("Brainstormed topic is missing required keys.");
+    const successfulArticles = results.filter(r => r.success && r.article).map(r => r.article);
+    const failedCountries = results.filter(r => !r.success).map(r => ({ country: r.country, error: r.error }));
+
+    for (const articleObj of successfulArticles) {
+      await articlesCol.replaceOne({ slug: articleObj.slug }, articleObj, { upsert: true });
     }
-
-    // 3. Ask Gemini to write the high-end, humanlike article focusing specifically on the target country
-    const articlePrompt = `You are an experienced study abroad advisor, elite academic copywriter, and SEO expert. Write a comprehensive, high-quality, and deeply informative guide/article on the following topic:
-Title: ${topic.title}
-Description: ${topic.prompt}
-Target Country: ${targetCountry}
-
-You MUST write this article specifically tailored for ${targetCountry}. Do NOT write it as a general/overall guide. All rules, visa specifications, accommodation details, part-time hour limits, tax brackets, and costs must reflect the reality of studying in ${targetCountry}.
-
-Make sure the article has these attributes:
-1. Long-form and extremely thorough (at least 1000 words).
-2. Humanlike Tone & Empathy: Write in a warm, expert, conversational, and highly natural human voice. Do NOT sound like an AI. Avoid robotic transition phrases or corporate buzzwords (do not use words like "delve", "tapestry", "testament", "moreover", "furthermore", "in conclusion", "it is important to note"). Use varying sentence lengths, personal pronouns, and realistic student-focused scenarios.
-3. Well-structured in Markdown using H2 (##) and H3 (###) headers, bullet points, numbered lists, and bold text.
-4. Contains a detailed HTML or Markdown table summarizing key steps, costs, or requirements (e.g. document checklists or timelines) for ${targetCountry}.
-5. Includes internal linking references back to the main website domain (e.g., 'Use the Studplex Matching Engine to find matching courses' or 'check your detailed eligibility on the Studplex Roadmap page').
-6. SEO optimized with natural keyword integration.
-
-You must format your response EXACTLY as text with the following delimiters:
-
----SLUG---
-${topic.id}
-
----TITLE---
-${topic.title}
-
----META_TITLE---
-[Enter the Meta Title here (maximum 60 characters)]
-
----META_DESCRIPTION---
-[Enter the Meta Description here (maximum 160 characters)]
-
----CATEGORY---
-${targetCountry}
-
----TAGS---
-[Comma-separated list of tags, e.g. housing, study abroad, guide]
-
----READ_TIME---
-[Enter estimated reading time in minutes as a number, e.g. 7]
-
----CONTENT---
-[Enter the complete, detailed article body in Markdown format here]`;
-
-    const articleText = await callGemini(articlePrompt, apiKey);
-
-    // 4. Parse delimiters
-    function extractBlock(name, textContent) {
-      const pattern = new RegExp(`---${name}---\\s*\\n([\\s\\S]*?)(?=\\n---[A-Z_]+---|$)`, 'i');
-      const match = textContent.match(pattern);
-      return match ? match[1].trim() : "";
-    }
-
-    const slug = extractBlock("SLUG", articleText) || topic.id;
-    const title = extractBlock("TITLE", articleText) || topic.title;
-    const metaTitle = extractBlock("META_TITLE", articleText) || title.substring(0, 60);
-    const metaDescription = extractBlock("META_DESCRIPTION", articleText) || "Learn more about studying abroad.";
-    const category = extractBlock("CATEGORY", articleText) || "General";
-    const tagsStr = extractBlock("TAGS", articleText);
-    const readTimeStr = extractBlock("READ_TIME", articleText);
-    const content = extractBlock("CONTENT", articleText) || articleText;
-
-    const tags = tagsStr.split(",").map(t => t.trim()).filter(Boolean);
-    if (tags.length === 0) {
-      tags.push(category.toLowerCase());
-    }
-
-    let readTime = 7;
-    const readTimeMatch = readTimeStr.match(/\d+/);
-    if (readTimeMatch) {
-      readTime = parseInt(readTimeMatch[0], 10);
-    }
-
-    const views = Math.floor(Math.random() * 80) + 20;
-
-    const articleObj = {
-      slug,
-      title,
-      meta_title: metaTitle,
-      meta_description: metaDescription,
-      category,
-      country: targetCountry,
-      tags,
-      read_time: readTime,
-      content,
-      views,
-      date: new Date().toISOString().split('T')[0]
-    };
-
-    // 5. Save/Upsert into MongoDB
-    await articlesCol.replaceOne({ slug: articleObj.slug }, articleObj, { upsert: true });
 
     return res.status(200).json({
       success: true,
-      message: `Successfully generated and synced article: '${articleObj.title}'`,
-      article: {
-        slug: articleObj.slug,
-        title: articleObj.title,
-        category: articleObj.category
-      }
+      message: `Finished daily cron run. Successfully generated and synced ${successfulArticles.length} articles!`,
+      successful: successfulArticles.map(a => ({ country: a.country, slug: a.slug, title: a.title })),
+      failedCount: failedCountries.length,
+      failed: failedCountries
     });
 
   } catch (err) {
